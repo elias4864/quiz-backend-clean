@@ -174,6 +174,26 @@ public class QuestionDTO {
         this.difficulty = difficulty;
     }
 
+
+
+
+
+
+
+    public static Question toEntity(QuestionDTO dto) {
+        // AppUser = null für Quiz-Gameplay
+        return new Question(
+                dto.getQuestion(),
+                dto.getCorrectAnswer(),
+                dto.getDifficulty(),
+                dto.getCategory(),
+                dto.getDifficulty(),
+                null  // Kein AppUser beim Spielen
+        );
+    }
+
+
+
     /**
      * Gibt die eindeutige ID der Frage zurück.
      *

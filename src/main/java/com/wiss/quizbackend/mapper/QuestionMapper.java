@@ -9,52 +9,28 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Mapper-Klasse für die Konvertierung zwischen Question Entity und verschiedenen DTOs.
- * <p>
- *     Diese Utility-Klasse stellt statische Methoden zur Verfügung, um Question-Objekte
- *     zwischen verschiedenen Repräsentationen zu konvertieren:
- * </p>
- * <ul>
- *     <li>{@link Question} - JPA Entity für die Datenbank</li>
- *     <li>{@link QuestionDTO} - DTO für Quiz-Spiel mit gemischten Antworten</li>
- *     <li>{@link QuestionFormDTO} - DTO für Admin-Formulare mit getrennten Antworten</li>
- * </ul>
- *
- * @author Johnny Krup
- * @version 1.0
- * @since 2025.06.01
+ * Optimierter Mapper für die Konvertierung zwischen Question Entity und DTOs.
  */
 public class QuestionMapper {
 
     /**
-     * Konvertiert eine Question Entity in ein QuestionDTO für das Quiz-Spiel.
-     * <p>
-     * Diese Methode sammelt alle Antworten (korrekte + falsche) und mischt sie
-     * zufällig, damit die korrekte Antwort nicht immer an derselben Position steht.
-     * Dies ist wichtig für eine faire Quiz-Experience im Frontend.
-     *
-     * @param entity Die Question Entity aus der Datenbank
-     * @return Das QuestionDTO mit gemischten Antworten für das Quiz-Spiel,
-     *         oder {@code null} falls die Entity {@code null} ist
-     *
-     * @see QuestionDTO
-     * @see Collections#shuffle(List)
+     * Entity -> QuestionDTO (Spiellogik: Antworten gemischt)
      */
     public static QuestionDTO toDTO(Question entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        // Alle Antworten sammeln
+        // Kopie erstellen, um Immutable-Fehler bei shuffle() zu vermeiden
         List<String> allAnswers = new ArrayList<>();
-        allAnswers.addAll(entity.getIncorrectAnswers());
+        if (entity.getIncorrectAnswers() != null) {
+            allAnswers.addAll(entity.getIncorrectAnswers());
+        }
         allAnswers.add(entity.getCorrectAnswer());
 
-        // Antworten mischen - wichtig für Frontend!
+        // Antworten mischen
         Collections.shuffle(allAnswers);
 
         return new QuestionDTO(
-                entity.getId(),               // ← ID hinzufügen!
+                entity.getId(),
                 entity.getQuestion(),
                 entity.getCorrectAnswer(),
                 allAnswers,
@@ -64,99 +40,44 @@ public class QuestionMapper {
     }
 
     /**
-     * Konvertiert eine Question Entity in ein QuestionFormDTO für Admin-Formulare.
-     * <p>
-     * Im Gegensatz zu {@link #toDTO(Question)} werden hier die Antworten NICHT gemischt,
-     * da in Admin-Formularen die korrekte und falschen Antworten getrennt
-     * bearbeitet werden sollen.
-     *
-     * @param entity Die Question Entity aus der Datenbank
-     * @return Das QuestionFormDTO mit getrennten Antworten für Bearbeitungsformulare,
-     *         oder {@code null} falls die Entity {@code null} ist
-     *
-     * @see QuestionFormDTO
+     * Entity -> QuestionFormDTO (Admin-Bereich: Antworten getrennt)
      */
-    public static QuestionFormDTO toFormDTO(Question entity) {
-        if (entity == null) {
-            return null;
-        }
 
-        return new QuestionFormDTO(
-                entity.getId(),
-                entity.getQuestion(),
-                entity.getCorrectAnswer(),
-                entity.getIncorrectAnswers(),
-                entity.getCategory(),
-                entity.getDifficulty()
-        );
-    }
 
     /**
-     * Konvertiert ein QuestionDTO zurück in eine Question Entity.
-     * <p>
-     * Diese Methode filtert die korrekte Antwort aus der gemischten Antwortliste
-     * heraus, um die ursprüngliche Struktur mit getrennten korrekten und
-     * falschen Antworten wiederherzustellen.
-     *
-     * @param dto Das QuestionDTO vom Frontend (z.B. aus einem REST-Request)
-     * @return Die Question Entity für die Datenbank-Persistierung,
-     *         oder {@code null} falls das DTO {@code null} ist
-     *
-     * @see QuestionDTO
-     * @see Question
+     * QuestionDTO -> Entity
+     * WICHTIG: Die ID wird hier mitgenommen, falls vorhanden (für Updates)!
      */
     public static Question toEntity(QuestionDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
 
-        // correctAnswer aus answers herausfiltern
-        List<String> incorrectAnswers = dto.getAnswers().stream()
-                .filter(answer -> !answer.equals(dto.getCorrectAnswer()))
-                .toList();
+        List<String> incorrectAnswers = dto.getAnswers() == null ? new ArrayList<>() :
+                dto.getAnswers().stream()
+                        .filter(answer -> !answer.equals(dto.getCorrectAnswer()))
+                        .toList();
 
-        return new Question(
+        Question entity = new Question(
                 dto.getQuestion(),
                 dto.getCorrectAnswer(),
                 incorrectAnswers,
                 dto.getCategory(),
                 dto.getDifficulty()
         );
+
+        // ID setzen, falls vorhanden (entscheidend für Service.updateQuestion)
+        if (dto.getId() != null) {
+            entity.setId(dto.getId());
+        }
+
+        return entity;
     }
 
-    /**
-     * Konvertiert eine Liste von Question Entities in eine Liste von QuestionDTOs.
-     * <p>
-     * Utility-Methode für die Batch-Konvertierung, z.B. beim Laden aller Fragen
-     * einer Kategorie für das Quiz-Spiel.
-     *
-     * @param entities Liste von Question Entities aus der Datenbank
-     * @return Liste von QuestionDTOs mit gemischten Antworten,
-     *         leere Liste, falls Input {@code null} oder leer ist
-     *
-     * @see #toDTO(Question)
-     */
+    // --- Batch-Konvertierungen ---
+
     public static List<QuestionDTO> toDTOList(List<Question> entities) {
-        return entities.stream()
-                .map(QuestionMapper::toDTO)
-                .toList();
+        if (entities == null) return Collections.emptyList();
+        return entities.stream().map(QuestionMapper::toDTO).toList();
     }
 
-    /**
-     * Konvertiert eine Liste von Question Entities in eine Liste von QuestionFormDTOs.
-     * <p>
-     * Utility-Methode für die Batch-Konvertierung, z.B. beim Laden aller Fragen
-     * für die Admin-Übersicht.
-     *
-     * @param entities Liste von Question Entities aus der Datenbank
-     * @return Liste von QuestionFormDTOs mit getrennten Antworten,
-     *         leere Liste, falls Input {@code null} oder leer ist
-     *
-     * @see #toFormDTO(Question)
-     */
-    public static List<QuestionFormDTO> toFormDTOList(List<Question> entities) {
-        return entities.stream()
-                .map(QuestionMapper::toFormDTO)
-                .toList();
-    }
+
 }

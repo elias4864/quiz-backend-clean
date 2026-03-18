@@ -17,7 +17,7 @@ public class AppUser {
     @NotBlank
     @Size(max=50)
     @Column(unique=true, nullable = false, length = 50)
-    private   String    username;
+    private   String username;
 
     @NotBlank
     @Size(max=40)
@@ -25,15 +25,35 @@ public class AppUser {
     private String email;
 
 
-    @NotBlank
-    @Column(nullable=false)
-    private String password;
 
 
     @NotNull
     @Enumerated(EnumType.STRING) // WICHTIG: Speichert den Namen des Enums ("ADMIN") statt der Zahl (0)
     @Column(nullable = false)
     private Role role;
+
+
+
+    @NotBlank
+    @Column(nullable=false)
+    private String password;
+
+
+    @Version
+    private Long version;
+
+
+
+//Neuer User hinzufügen
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id")
+    private AppUser createdBy;
+
+
+
+
+
+
 
 
     public AppUser(String email, String password, Role role, String username) {
@@ -45,6 +65,8 @@ public class AppUser {
 
 
     public enum    Role {
+
+        Admin, PLAYER
 
     }
 

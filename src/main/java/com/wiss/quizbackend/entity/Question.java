@@ -3,9 +3,9 @@ package com.wiss.quizbackend.entity;
 import jakarta.persistence.*;
 
 import java.util.List;
+// ← "Das wird eine Datenbank-Tabelle"
+@Table(name = "questions")
 
-@Entity                                     // ← "Das wird eine Datenbank-Tabelle"
-@Table(name = "questions")                  // ← "Tabelle soll 'questions' heissen (Optional)"
 public class Question {
 
     @Id                                    // ← "Das ist der Primary Key"
@@ -14,6 +14,14 @@ public class Question {
 
     @Column(nullable = false, length = 128)  // ← "Spalte darf nicht NULL sein, max 128 Zeichen"
     private String question;
+
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY) // LAZY: User-Daten werden nur geladen, wenn man .getCreatedBy() aufruft
+    @JoinColumn(name = "created_by_user_id", nullable = false)
+    private AppUser createdBy;
+
 
     @Column(name = "correct_answer", nullable = false)  // ← "Spalte heisst 'correct_answer'"
     private String correctAnswer;
@@ -28,6 +36,11 @@ public class Question {
 
     @Column(nullable = false, length = 32)
     private String difficulty;
+
+
+
+
+
 
     // ✅ DEFAULT CONSTRUCTOR hinzufügen (für JPA/Hibernate):
     public Question(){}
@@ -50,24 +63,15 @@ public class Question {
         this.difficulty = difficulty;
     }
 
-    /**
-     * Konstruktor mit ID um bestehende Fragen zu aktualisieren oder löschen
-     * @param id
-     * @param question
-     * @param correctAnswer
-     * @param incorrectAnswers
-     * @param category
-     * @param difficulty
-     */
-    public Question(Long id, String question, String correctAnswer,
-                    List<String> incorrectAnswers, String category,
-                    String difficulty) {
-        this.id = id;
-        this.question = question;
-        this.correctAnswer = correctAnswer;
-        this.incorrectAnswers = incorrectAnswers;
-        this.category = category;
-        this.difficulty = difficulty;
+
+
+
+    public AppUser getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(AppUser createdBy) {
+        this.createdBy = createdBy;
     }
 
     public Long getId() {
@@ -116,5 +120,19 @@ public class Question {
 
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Question{" +
+                "category='" + category + '\'' +
+                ", id=" + id +
+                ", question='" + question + '\'' +
+                ", correctAnswer='" + correctAnswer + '\'' +
+                ", incorrectAnswers=" + incorrectAnswers +
+                ", difficulty='" + difficulty + '\'' +
+                ", createdBy=" + createdBy +
+                '}';
     }
 }
