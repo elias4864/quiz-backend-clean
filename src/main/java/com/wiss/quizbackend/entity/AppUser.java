@@ -59,4 +59,45 @@ public class AppUser {
                 ", role=" + role +
                 '}';
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public @NotBlank @Size(max = 40) String getEmail() {
+        return email;
+    }
+
+
+    public void setEmail(@NotBlank @Size(max = 40) String email) {
+        this.email = email;
+    }
+
+    public @NotBlank String getPassword() {
+        return password;
+    }
+
+    public void setPassword(@NotBlank String password) {
+        this.password = password;
+    }
+
+    public @NotNull Role getRole() {
+        return role;
+    }
+
+    public @NotBlank @Size(max = 50) String getUsername() {
+        return username;
+    }
+
+    public void setUsername(@NotBlank @Size(max = 50) String username) {
+        this.username = username;
+    }
+
+    public void setRole(@NotNull Role role) {
+        this.role = role;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
