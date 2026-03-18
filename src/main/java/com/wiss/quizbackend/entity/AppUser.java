@@ -44,6 +44,10 @@ public class AppUser {
     }
 
 
+    public enum    Role {
+
+    }
+
     //Automatischer Konstruktor
     public AppUser() {
 
