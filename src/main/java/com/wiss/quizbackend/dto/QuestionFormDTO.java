@@ -22,19 +22,16 @@ public class QuestionFormDTO {
     public QuestionFormDTO() {}
 
     // NEU: Vollständiger Konstruktor inklusive Ersteller-Infos
+    // In QuestionFormDTO.java
     public QuestionFormDTO(Long id, String question, String correctAnswer,
-                           List<String> incorrectAnswers, String category,
-                           String difficulty, String creatorUsername, Long creatorId) {
+                           List<String> incorrectAnswers, String category, String difficulty) {
         this.id = id;
         this.question = question;
         this.correctAnswer = correctAnswer;
         this.incorrectAnswers = incorrectAnswers;
         this.category = category;
         this.difficulty = difficulty;
-        this.creatorUsername = creatorUsername;
-        this.creatorId = creatorId;
     }
-
     // Getter und Setter
     public String getCreatorUsername() { return creatorUsername; }
     public void setCreatorUsername(String creatorUsername) { this.creatorUsername = creatorUsername; }

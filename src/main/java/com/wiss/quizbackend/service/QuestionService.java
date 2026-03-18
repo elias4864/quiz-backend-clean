@@ -3,6 +3,8 @@ package com.wiss.quizbackend.service;
 import com.wiss.quizbackend.dto.QuestionDTO;
 import com.wiss.quizbackend.dto.QuestionFormDTO;
 import com.wiss.quizbackend.entity.Question;
+import com.wiss.quizbackend.dto.QuestionDTO;
+import com.wiss.quizbackend.dto.QuestionFormDTO;
 import com.wiss.quizbackend.exception.CategoryNotFoundException;
 import com.wiss.quizbackend.exception.DifficultyNotFoundException;
 import com.wiss.quizbackend.exception.QuestionNotFoundException;
@@ -14,6 +16,7 @@ import java.util.List;
 
 @Service
 public class QuestionService {
+
     private final QuestionRepository repository;
 
     public QuestionService(QuestionRepository repository) {
@@ -26,14 +29,60 @@ public class QuestionService {
         return QuestionMapper.toDTOList(repository.findAll());
     }
 
+    public List<QuestionFormDTO> getAllQuestionsAsFormDTO() {
+        // Nutzt jetzt die neu erstellte Methode im Mapper
+        return QuestionMapper.toFormDTOList(repository.findAll());
+    }
+
 
     public QuestionDTO getQuestionByIdAsDTO(Long id) {
         return QuestionMapper.toDTO(getQuestionById(id));
     }
 
+    public QuestionFormDTO getQuestionByIdAsFormDTO(Long id) {
+        return QuestionMapper.toFormDTO(getQuestionById(id));
+    }
 
+    // --- Filter & Suche (Neu hinzugefügt für Controller-Support) ---
 
-    // --- Schreib-Operationen (Spieler/API) ---
+    public List<QuestionDTO> getQuestionsByCategoryAsDTO(String category) {
+        validateCategory(category);
+        return QuestionMapper.toDTOList(repository.findByCategory(category.toLowerCase()));
+    }
+
+    public List<QuestionDTO> getQuestionsByDifficultyAsDTO(String difficulty) {
+        return QuestionMapper.toDTOList(repository.findByDifficulty(difficulty.toLowerCase()));
+    }
+
+    public List<QuestionDTO> getQuestionsByCategoryAndDifficulty(String category, String difficulty) {
+        return QuestionMapper.toDTOList(repository.findByCategoryAndDifficulty(category, difficulty));
+    }
+
+    public List<QuestionDTO> searchQuestions(String query) {
+        return QuestionMapper.toDTOList(repository.findByQuestionContainingIgnoreCase(query));
+    }
+
+    // --- Statistik & Zufall (Neu hinzugefügt für Controller-Support) ---
+
+    public long getTotalQuestionsCount() {
+        return repository.count();
+    }
+
+    public long getQuestionCountByCategory(String category) {
+        validateCategory(category);
+        return repository.countByCategory(category);
+    }
+
+    public List<QuestionDTO> getRandomQuestions(int limit) {
+        return QuestionMapper.toDTOList(repository.findRandomQuestions(limit));
+    }
+
+    public List<QuestionDTO> getRandomQuestionsByCategory(String category, int limit) {
+        validateCategory(category);
+        return QuestionMapper.toDTOList(repository.findRandomByCategory(category, limit));
+    }
+
+    // --- Schreib-Operationen ---
 
     public QuestionDTO createQuestion(QuestionDTO dto) {
         validateDto(dto);
@@ -50,10 +99,7 @@ public class QuestionService {
         return QuestionMapper.toDTO(repository.save(entity));
     }
 
-    // --- Admin-Formular Operationen (Entity-basiert) ---
-
     public QuestionFormDTO createQuestionFromForm(Question question) {
-        // Speichert die Entity direkt und gibt das Form-Layout zurück
         return QuestionMapper.toFormDTO(repository.save(question));
     }
 

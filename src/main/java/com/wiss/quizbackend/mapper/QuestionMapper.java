@@ -19,14 +19,13 @@ public class QuestionMapper {
     public static QuestionDTO toDTO(Question entity) {
         if (entity == null) return null;
 
-        // Kopie erstellen, um Immutable-Fehler bei shuffle() zu vermeiden
         List<String> allAnswers = new ArrayList<>();
         if (entity.getIncorrectAnswers() != null) {
             allAnswers.addAll(entity.getIncorrectAnswers());
         }
         allAnswers.add(entity.getCorrectAnswer());
 
-        // Antworten mischen
+        // Antworten für den Spieler mischen
         Collections.shuffle(allAnswers);
 
         return new QuestionDTO(
@@ -40,13 +39,22 @@ public class QuestionMapper {
     }
 
     /**
-     * Entity -> QuestionFormDTO (Admin-Bereich: Antworten getrennt)
+     * Entity -> QuestionFormDTO (Admin-Bereich: Antworten getrennt für das Formular)
+     * NEU: Hinzugefügt für die Übereinstimmung mit dem Service
      */
-
-
+    public static QuestionFormDTO toFormDTO(Question entity) {
+        if (entity == null) return null;
+        return new QuestionFormDTO(
+                entity.getId(),
+                entity.getQuestion(),
+                entity.getCorrectAnswer(),
+                entity.getIncorrectAnswers(),
+                entity.getCategory(),
+                entity.getDifficulty() // ← Komma entfernt
+        ); // ← Semikolon hinzugefügt
+    }
     /**
      * QuestionDTO -> Entity
-     * WICHTIG: Die ID wird hier mitgenommen, falls vorhanden (für Updates)!
      */
     public static Question toEntity(QuestionDTO dto) {
         if (dto == null) return null;
@@ -64,7 +72,6 @@ public class QuestionMapper {
                 dto.getDifficulty()
         );
 
-        // ID setzen, falls vorhanden (entscheidend für Service.updateQuestion)
         if (dto.getId() != null) {
             entity.setId(dto.getId());
         }
@@ -79,5 +86,11 @@ public class QuestionMapper {
         return entities.stream().map(QuestionMapper::toDTO).toList();
     }
 
-
+    /**
+     * NEU: Hinzugefügt für die Übereinstimmung mit dem Service
+     */
+    public static List<QuestionFormDTO> toFormDTOList(List<Question> entities) {
+        if (entities == null) return Collections.emptyList();
+        return entities.stream().map(QuestionMapper::toFormDTO).toList();
+    }
 }

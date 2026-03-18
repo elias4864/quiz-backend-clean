@@ -6,7 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import javax.management.relation.Role;
-
+@Entity
+@Table(name="appuser")
 public class AppUser {
 
     //Primary Key
@@ -39,8 +40,6 @@ public class AppUser {
     private String password;
 
 
-    @Version
-    private Long version;
 
 
 
@@ -64,7 +63,7 @@ public class AppUser {
     }
 
 
-    public enum    Role {
+    public enum   Role {
 
         Admin, PLAYER
 

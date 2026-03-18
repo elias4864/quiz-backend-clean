@@ -3,6 +3,7 @@ package com.wiss.quizbackend.entity;
 import jakarta.persistence.*;
 
 import java.util.List;
+@Entity
 // ← "Das wird eine Datenbank-Tabelle"
 @Table(name = "questions")
 
