@@ -11,7 +11,6 @@ import com.wiss.quizbackend.repository.QuestionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuestionService {
@@ -21,32 +20,25 @@ public class QuestionService {
         this.repository = repository;
     }
 
-    // --- Lese-Operationen (DTOs) ---
+    // --- Lese-Operationen ---
 
     public List<QuestionDTO> getAllQuestionsAsDTO() {
         return QuestionMapper.toDTOList(repository.findAll());
     }
 
-    public List<QuestionFormDTO> getAllQuestionsAsFormDTO() {
-        return QuestionMapper.toDTOList(repository.findAll());
-    }
 
     public QuestionDTO getQuestionByIdAsDTO(Long id) {
-        // Nutzt die interne getQuestionById, die bereits validiert und Exceptions wirft
         return QuestionMapper.toDTO(getQuestionById(id));
     }
 
-    public QuestionFormDTO getQuestionByIdAsFormDTO(Long id) {
-        return QuestionMapper.toFormDTO(getQuestionById(id));
-    }
 
-    // --- Schreib-Operationen (DTO-basiert) ---
+
+    // --- Schreib-Operationen (Spieler/API) ---
 
     public QuestionDTO createQuestion(QuestionDTO dto) {
         validateDto(dto);
         Question entity = QuestionMapper.toEntity(dto);
-        Question saved = repository.save(entity);
-        return QuestionMapper.toDTO(saved);
+        return QuestionMapper.toDTO(repository.save(entity));
     }
 
     public QuestionDTO updateQuestion(Long id, QuestionDTO dto) {
@@ -54,13 +46,14 @@ public class QuestionService {
             throw new QuestionNotFoundException(id);
         }
         Question entity = QuestionMapper.toEntity(dto);
-        entity.setId(id); // ID für Update sicherstellen
+        entity.setId(id);
         return QuestionMapper.toDTO(repository.save(entity));
     }
 
-    // --- Admin-Formular Operationen ---
+    // --- Admin-Formular Operationen (Entity-basiert) ---
 
     public QuestionFormDTO createQuestionFromForm(Question question) {
+        // Speichert die Entity direkt und gibt das Form-Layout zurück
         return QuestionMapper.toFormDTO(repository.save(question));
     }
 
@@ -72,6 +65,8 @@ public class QuestionService {
         return QuestionMapper.toFormDTO(repository.save(question));
     }
 
+    // --- Löschen & Hilfsmethoden ---
+
     public void deleteQuestion(Long id) {
         if (!repository.existsById(id)) {
             throw new QuestionNotFoundException(id);
@@ -79,54 +74,23 @@ public class QuestionService {
         repository.deleteById(id);
     }
 
-    // --- Interne Logik & Entity-Zugriff ---
-
     public Question getQuestionById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new QuestionNotFoundException(id));
     }
 
-    public List<QuestionDTO> getRandomQuestions(int limit) {
-        if (limit <= 0 || limit > 50) {
-            throw new IllegalArgumentException("Limit must be between 1 and 50");
-        }
-        return QuestionMapper.toDTOList(repository.findRandomQuestions(limit));
-    }
-
-    public List<QuestionDTO> getQuestionsByCategoryAsDTO(String category) {
-        validateCategory(category);
-        List<Question> entities = repository.findByCategory(category.toLowerCase());
-        return QuestionMapper.toDTOList(entities);
-    }
-
     // --- Validierungen ---
 
     private void validateDto(QuestionDTO dto) {
-        if (dto.getQuestion() == null || dto.getQuestion().trim().isEmpty()) {
-            throw new IllegalArgumentException("Question text is required");
-        }
-        if (dto.getCorrectAnswer() == null || dto.getCorrectAnswer().trim().isEmpty()) {
-            throw new IllegalArgumentException("Correct answer is required");
+        if (dto == null || dto.getQuestion() == null || dto.getQuestion().trim().isEmpty()) {
+            throw new IllegalArgumentException("Ungültige Fragendaten.");
         }
     }
 
     private void validateCategory(String category) {
-        if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category cannot be null");
-        }
         List<String> valid = List.of("sports", "games", "movies", "geography", "science", "history");
-        if (!valid.contains(category.toLowerCase())) {
+        if (category == null || !valid.contains(category.toLowerCase())) {
             throw new CategoryNotFoundException(category);
-        }
-    }
-
-    private void validateDifficulty(String difficulty) {
-        if (difficulty == null || difficulty.trim().isEmpty()) {
-            throw new IllegalArgumentException("Difficulty cannot be null");
-        }
-        List<String> valid = List.of("easy", "medium", "hard");
-        if (!valid.contains(difficulty.toLowerCase())) {
-            throw new DifficultyNotFoundException(difficulty);
         }
     }
 }
