@@ -7,6 +7,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+
+    //Spring Security mit den Schichten
+
     @Override
     public void addCorsMappings(CorsRegistry registry){
         registry.addMapping("/api/questions/**") // <- Alle /api/questions/* Endpoints
