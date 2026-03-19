@@ -8,82 +8,63 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+
 import java.util.Collection;
 import java.util.List;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.management.relation.Role;
 @Entity
-@Table(name="app_user")
+@Table(name="app_users")
 public class  AppUser  implements UserDetails{
-
-    //Primary Key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
+    private Long id;
 
-    @NotBlank
-    @Size(max=50)
-    @Column(unique=true, nullable = false, length = 50)
-    private   String username;
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
 
-    @NotBlank
-    @Size(max=40)
-    @Column(unique=true, nullable = false, length=100)
+    @Column(nullable = false, length = 100)
     private String email;
 
+    @Column(nullable = false)
+    private String password;  // ACHTUNG: Wird in nächster Lektion gehashed!
+    // NIE Passwörter im Klartext speichern!
 
-
-
-    @NotNull
-    @Enumerated(EnumType.STRING) // WICHTIG: Speichert den Namen des Enums ("ADMIN") statt der Zahl (0)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
+    // Konstruktoren
+    public AppUser() {}
 
-
-
-    @NotBlank
-    @Column(nullable=false)
-    private String password;
-
-
-
-
-
-//Neuer User hinzufügen
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_user_id")
-    private AppUser createdBy;
-
-
-
-
-
-
-
-
-    public AppUser(String email, String password, Role role, String username) {
-        this.email = email;
-        this.password= password;
-        this.role = role;
+    public AppUser(String username, String email, String password, Role role) {
+        // id wird NICHT gesetzt - JPA kümmert sich darum!
+        // version wird NICHT gesetzt - JPA kümmert sich darum!
+        // Regel, wenn JPA oder die Datenbank die Werte setzen, dann nicht im Konstruktor setzen!
         this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
     }
 
+    // ========================================
+    // UserDetails Methoden (PFLICHT für Spring Security!)
+    // ========================================
 
-    public enum   Role {
-
-        Admin, PLAYER
-
-    }
-
-    //Automatischer Konstruktor
-    public AppUser() {
-
-    }
-
-
-
+    /**
+     * Gibt die Rollen (Authorities) des Users zurück.
+     * <p>
+     * Spring Security Konvention:
+     * - @PreAuthorize("hasRole('ADMIN')") sucht nach "ROLE_ADMIN"
+     * - Unser Enum hat: Role.ADMIN
+     * - Wir müssen "ROLE_" Prefix hinzufügen!
+     * </p>
+     * Analogie: Die Zugangsberechtigung auf dem Ausweis
+     * - "Mitarbeiter" → darf in Büros
+     * - "Security" → darf überall
+     *
+     * @return Collection mit einer Authority (z.B. "ROLE_ADMIN")
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // "ROLE_" Prefix für Spring Security hinzufügen
@@ -91,84 +72,120 @@ public class  AppUser  implements UserDetails{
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-
-
-
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public @NotBlank @Size(max = 40) String getEmail() {
-        return email;
-    }
-
-
-    public void setEmail(@NotBlank @Size(max = 40) String email) {
-        this.email = email;
-    }
-
+    /**
+     * Gibt das verschlüsselte Passwort zurück.
+     * Wichtig: Das ist KEIN Klartext, sondern ein BCrypt Hash!
+     * <p>
+     * Analogie: Die Geheimzahl auf dem Ausweis-Chip
+     * - Nicht lesbar für Menschen
+     * - Nur das Lesegerät kann sie prüfen
+     * </p>
+     * @return BCrypt Hash des Passworts
+     */
     @Override
     public String getPassword() {
-        return password; // Gibt den BCrypt Hash zurück
+        return password;
     }
+
+    /**
+     * Gibt den Benutzernamen zurück.
+     * Analogie: Der Name auf dem Ausweis
+     *
+     * @return Username des Users
+     */
     @Override
     public String getUsername() {
         return username;
     }
 
-
+    /**
+     * Ist das Konto nicht abgelaufen?
+     * Wir implementieren KEINE Ablauf-Logik → immer true
+     *
+     * Analogie: "Gültig bis"-Datum auf dem Ausweis
+     * - Wir haben kein Ablaufdatum → immer gültig
+     *
+     * @return true (Konto läuft nie ab)
+     */
     @Override
     public boolean isAccountNonExpired() {
-        return true; // Konto läuft nie ab
+        return true; // Keine Ablauflogik implementiert
     }
 
+    /**
+     * Ist das Konto nicht gesperrt?
+     * Wir implementieren KEINE Sperr-Logik → immer true
+     *
+     * Analogie: Ausweis wurde nicht gesperrt
+     * - Kein "Gesperrt"-Stempel drauf
+     *
+     * @return true (Konto ist nie gesperrt)
+     */
     @Override
     public boolean isAccountNonLocked() {
-        return true; // Konto ist nie gesperrt
+        return true; // Keine Sperrlogik implementiert
     }
 
+    /**
+     * Ist das Passwort nicht abgelaufen?
+     * Wir implementieren KEINE Passwort-Rotation → immer true
+     *
+     * Analogie: Passwort muss nicht alle 90 Tage geändert werden
+     *
+     * @return true (Passwort läuft nie ab)
+     */
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Passwort läuft nie ab
+        return true; // Passwörter laufen nicht ab
     }
 
+    /**
+     * Ist das Konto aktiviert?
+     * Wir implementieren KEINE E-Mail-Verifizierung → immer true
+     *
+     * Analogie: Ausweis ist sofort nach Ausstellung gültig
+     * - Keine Aktivierung nötig
+     *
+     * @return true (Konto ist sofort aktiv)
+     */
     @Override
     public boolean isEnabled() {
-        return true; // Konto ist immer aktiv
+        return true; // Accounts sind sofort aktiv
     }
 
 
 
-    public void setPassword(@NotBlank String password) {
-        this.password = password;
-    }
+    // Getter und Setter
 
-    public @NotNull Role getRole() {
-        return role;
-    }
-
-
-    public void setUsername(@NotBlank @Size(max = 50) String username) {
-        this.username = username;
-    }
-
-    public void setRole(@NotNull Role role) {
-        this.role = role;
-    }
-
-    public AppUser getCreatedBy() {
-        return createdBy;
-    }
-
-
-    public void setCreatedBy(AppUser createdBy) {
-        this.createdBy = createdBy;
+    public Long getId() {
+        return id;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }

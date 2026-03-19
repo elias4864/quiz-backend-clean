@@ -1,16 +1,28 @@
 package com.wiss.quizbackend.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration
+        .EnableMethodSecurity;
+@Configuration  // Spring scannt diese Klasse beim Start
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
 
-public class SecurityConf {
 
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         // Work Factor: 10-12 ist Standard, 14+ für hochsensible Daten
@@ -45,5 +57,11 @@ public class SecurityConf {
 
         return http.build();
     }
+
+
+
+
+
+
 
 }

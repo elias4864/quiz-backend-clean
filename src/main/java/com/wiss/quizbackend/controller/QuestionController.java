@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,6 +60,7 @@ public class QuestionController {
      * @return Liste aller Fragen als DTOs
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER'")
     @Operation(
             summary = "Alle Fragen abrufen",
             description = "Gibt alle verfügbaren Quiz-Fragen zurück"
@@ -74,6 +76,7 @@ public class QuestionController {
      * @return Liste aller Fragen als DTOs
      */
     @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN,'PLAYER'")
     @Operation(
             summary = "Alle Fragen abrufen",
             description = "Gibt alle verfügbaren Quiz-Fragen zurück"
@@ -96,6 +99,7 @@ public class QuestionController {
             summary = "Frage nach ID abrufen",
             description = "Gibt eine spezifische Frage basierend auf der ID zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     @ApiResponse(responseCode = "200", description = "Frage gefunden")
     @ApiResponse(responseCode = "404", description = "Frage nicht gefunden")
     @ApiResponse(responseCode = "400", description = "Ungültige ID übergeben")
@@ -143,6 +147,7 @@ public class QuestionController {
             summary = "Fragen nach Kategorie",
             description = "Gibt alle Fragen einer bestimmten Kategorie zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")  // ←
     @ApiResponse(responseCode = "200", description = "Ergebnisse nach Kategorie zurückgegeben")
     public List<QuestionDTO> getQuestionsByCategory(
             @Parameter(description = "Kategorie", example = "sports", required = true)
@@ -162,6 +167,7 @@ public class QuestionController {
             summary = "Fragen nach Schwierigkeit",
             description = "Gibt alle Fragen einer bestimmten Schwierigkeit zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     @ApiResponse(responseCode = "200", description = "Ergebnisse nach Schwierigkeit zurückgegeben")
     public List<QuestionDTO> getQuestionsByDifficulty(
             @Parameter(description = "Schwierigkeit", example = "easy", required = true)
@@ -185,6 +191,7 @@ public class QuestionController {
             summary = "Neue Frage erstellen",
             description = "Erstellt eine neue Quiz-Frage"
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ApiResponse(responseCode = "201", description = "Frage erfolgreich erstellt")
     @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
@@ -208,6 +215,7 @@ public class QuestionController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Neue Frage erstellen über Frontend-Form")
+    @PreAuthorize("hasRole('ADMIN')")
     @ApiResponse(responseCode = "201", description = "Frage erfolgreich erstellt")
     @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
     public QuestionFormDTO createQuestionFromForm(
@@ -230,6 +238,7 @@ public class QuestionController {
             summary = "Frage aktualisieren",
             description = "Aktualisiert eine bestehende Frage"
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @ApiResponse(responseCode = "200", description = "Frage erfolgreich editiert")
     @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
     public QuestionDTO updateQuestion(
@@ -252,6 +261,8 @@ public class QuestionController {
             summary = "Frage aktualisieren über Formular",
             description = "Aktualisiert eine bestehende Frage über das Formular im Frontend"
     )
+    @PreAuthorize("hasRole('ADMIN')")
+
     @ApiResponse(responseCode = "200", description = "Frage erfolgreich editiert")
     @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
     public QuestionFormDTO updateQuestionFromForm(
@@ -275,6 +286,7 @@ public class QuestionController {
             summary = "Frage löschen",
             description = "Löscht eine Frage permanent. Diese Aktion kann nicht rückgängig gemacht werden!"
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ApiResponse(responseCode = "200", description = "Frage erfolgreich gelöscht")
     @ApiResponse(responseCode = "404", description = "Frage nicht gefunden")
@@ -297,6 +309,8 @@ public class QuestionController {
      * @return Liste der gefilterten Fragen
      */
     @GetMapping("/filter")
+    @Operation(summary = "Fragen filtern")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     public List<QuestionDTO> getQuestionsByFilter(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String difficulty) {
@@ -328,6 +342,7 @@ public class QuestionController {
             summary = "Fragen durchsuchen",
             description = "Sucht Fragen basierend auf einem Suchbegriff"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     public List<QuestionDTO> searchQuestions(
             @Parameter(description = "Suchbegriff", example = "Schweiz")
             @RequestParam String q) {
@@ -346,6 +361,7 @@ public class QuestionController {
             summary = "Anzahl Fragen nach Kategorie",
             description = "Zählt die Anzahl Fragen einer bestimmten Kategorie zusammen"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     public long getQuestionCountByCategory(
             @Parameter(description = "Kategorie", example = "history")
             @PathVariable String category) {
@@ -369,6 +385,7 @@ public class QuestionController {
             summary = "Zufällige Anzahl Fragen nach Kategorie",
             description = "Gibt eine zufällige Anzahl an Fragen zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     public List<QuestionDTO> getRandomQuestions(
             @Parameter(description = "Kategorie", example = "movies")
             @RequestParam String category,
@@ -391,6 +408,7 @@ public class QuestionController {
             summary = "Anzahl aller Fragen",
             description = "Gibt die Anzahl aller verfügbaen Fragen zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     public long getQuestionsCount() {
         return service.getTotalQuestionsCount();
     }
