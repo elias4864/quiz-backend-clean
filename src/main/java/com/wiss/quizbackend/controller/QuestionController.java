@@ -41,6 +41,9 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/questions")
+@CrossOrigin(origins = "http://localhost:5173") //
+
+
 @Tag(name="Questions", description = "CRUD Operations für Quiz-Fragen")
 public class QuestionController {
     private final QuestionService service;
@@ -60,11 +63,12 @@ public class QuestionController {
      * @return Liste aller Fragen als DTOs
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER'")
     @Operation(
             summary = "Alle Fragen abrufen",
             description = "Gibt alle verfügbaren Quiz-Fragen zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
+
     @ApiResponse(responseCode = "200", description = "Liste erfolgreich abgerufen")
     public List<QuestionDTO> getAllQuestions() {
         return service.getAllQuestionsAsDTO();
@@ -76,11 +80,12 @@ public class QuestionController {
      * @return Liste aller Fragen als DTOs
      */
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMIN,'PLAYER'")
+
     @Operation(
             summary = "Alle Fragen abrufen",
             description = "Gibt alle verfügbaren Quiz-Fragen zurück"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')") // <-- Jetzt ist es korrekt
     @ApiResponse(responseCode = "200", description = "Liste erfolgreich abgerufen")
     public List<QuestionFormDTO> getAllFormQuestions() {
         return service.getAllQuestionsAsFormDTO();
@@ -126,6 +131,7 @@ public class QuestionController {
             summary = "Frage nach ID abrufen Formular",
             description = "Gibt eine spezifische Frage basierend auf der ID zurück, optimiert für das Frontend-Formular"
     )
+    @PreAuthorize("hasAnyRole('ADMIN', 'PLAYER')")
     @ApiResponse(responseCode = "200", description = "Frage gefunden")
     @ApiResponse(responseCode = "404", description = "Frage nicht gefunden")
     @ApiResponse(responseCode = "400", description = "Ungültige ID übergeben")

@@ -54,6 +54,8 @@ public class QuestionDTO {
         this.difficulty = difficulty;
     }
 
+
+
     // GETTER UND SETTER
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

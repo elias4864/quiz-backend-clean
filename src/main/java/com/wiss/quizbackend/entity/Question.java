@@ -78,6 +78,10 @@ public class Question {
         this.createdBy = createdBy; // Neu, den Ersteller der Frage setzen
     }
 
+
+
+
+
     public Long getId() {
         return id;
     }

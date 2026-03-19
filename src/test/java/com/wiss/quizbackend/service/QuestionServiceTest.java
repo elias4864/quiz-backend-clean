@@ -28,7 +28,13 @@ public class QuestionServiceTest {
 
     /**
      * Test 1: Alle Fragen abrufen
+
+
+
+    /**
+     * Test 2: Frage nach ID finden
      */
+
     @Test
     public void whenGetAllQuestions_thenReturnAllQuestions() {
         // Arrange - Mock-Verhalten definieren
@@ -39,7 +45,7 @@ public class QuestionServiceTest {
         when(questionRepository.findAll()).thenReturn(mockQuestions);
 
         // Act - Service-Methode aufrufen
-        List<Question> result = questionService.getAllQuestions();
+        List<QuestionDTO> result = questionService.getAllQuestionsAsDTO();
 
         // Assert - Ergebnis prüfen
         assertThat(result).hasSize(2);
@@ -50,9 +56,7 @@ public class QuestionServiceTest {
         verify(questionRepository, times(1)).findAll();
     }
 
-    /**
-     * Test 2: Frage nach ID finden
-     */
+
     @Test
     public void whenGetQuestionById_thenReturnQuestion() {
         // Arrange
@@ -157,7 +161,7 @@ public class QuestionServiceTest {
         when(questionRepository.findByCategory(category)).thenReturn(mockQuestions);
 
         // Act
-        List<Question> result = questionService.getQuestionsByCategory(category);
+        List<QuestionDTO> result = questionService.getQuestionsByCategoryAsDTO(category);
 
         // Assert
         assertThat(result).hasSize(1);
@@ -214,7 +218,8 @@ public class QuestionServiceTest {
                 correctAnswer,
                 Arrays.asList("Falsch 1", "Falsch 2", "Falsch 3"),
                 "sports",
-                "medium"
+                "medium",
+                null
         );
         return question;
     }
