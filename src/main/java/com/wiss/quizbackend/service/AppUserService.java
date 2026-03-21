@@ -116,6 +116,13 @@ public class AppUserService {
         return Optional.empty();  // Login fehlgeschlagen
     }
 
+
+
+
+    public Optional<AppUser> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     /**
      * Hilfsmethode: Prüft ob Email valid ist
      */

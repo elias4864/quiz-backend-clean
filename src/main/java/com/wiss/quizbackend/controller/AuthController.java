@@ -5,6 +5,7 @@ import com.wiss.quizbackend.dto.RegisterResponseDTO;
 import com.wiss.quizbackend.entity.AppUser;
 import com.wiss.quizbackend.entity.Role;
 import com.wiss.quizbackend.service.AppUserService;
+import com.wiss.quizbackend.service.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,13 @@ import java.util.Map;
 public class AuthController {
 
     private final AppUserService appUserService;
+    private final JwtService jwtService;
 
-    //Dependency Injection
-
-    public AuthController(AppUserService appUserService) {
+    public AuthController(AppUserService appUserService,
+                          JwtService jwtService) {
         this.appUserService = appUserService;
+        this.jwtService = jwtService;
     }
-
 
 
     @PostMapping("/register")
@@ -88,6 +89,12 @@ public class AuthController {
         response.put("message", exists ? "Username bereits vergeben" : "Username ist verfügbar");
         return ResponseEntity.ok(response);
     }
+
+
+
+
+
+    
     /**
      * GET /api/auth/check-email/{email}
      *
