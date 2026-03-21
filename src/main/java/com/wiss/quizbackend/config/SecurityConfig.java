@@ -3,6 +3,8 @@ package com.wiss.quizbackend.config;
 import com.wiss.quizbackend.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,6 +50,13 @@ public class SecurityConfig {
         // Stärke = 2^12 = 4096 Iterationen
         // Höher = sicherer aber langsamer (10-12 ist Standard 2024)
         return new BCryptPasswordEncoder(12);
+    }
+
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     /**
