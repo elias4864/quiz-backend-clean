@@ -81,17 +81,13 @@ public class AuthController {
      * }
      */
     @GetMapping("/check-username/{username}")
-    public ResponseEntity<Map<String, Object>>
-    checkUsername(@PathVariable String username) {
-
-        boolean usernameexists = appUserService.findByUsername(username).isPresent();
-        if (usernameexists) {
-            Map<String, Object> response = new HashMap<>();
-        }
-        return ResponseEntity.ok(new HashMap<>());
-
+    public ResponseEntity<Map<String, Object>> checkUsername(@PathVariable String username) {
+        boolean exists = appUserService.findByUsername(username).isPresent();
+        Map<String, Object> response = new HashMap<>();
+        response.put("available", !exists);
+        response.put("message", exists ? "Username bereits vergeben" : "Username ist verfügbar");
+        return ResponseEntity.ok(response);
     }
-
     /**
      * GET /api/auth/check-email/{email}
      *

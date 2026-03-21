@@ -1,63 +1,85 @@
 package com.wiss.quizbackend.config;
 
+import com.wiss.quizbackend.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.method.configuration
-        .EnableMethodSecurity;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
-@Configuration  // Spring scannt diese Klasse beim Start
+/**
+ * Security-Konfiguration für die Applikation.
+ *
+ * @Configuration: Markiert diese Klasse als Configurations-Klasse
+ *                Spring scannt diese beim Start und führt alle @Bean Methoden aus
+ *
+ * @EnableWebSecurity: Aktiviert Spring Security für Web-Requests
+ *                     ohne dies würde Spring Security nicht aktiv werden
+ */
+@Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // WICHTIG: Erlaubt @PreAuthorize("hasRole('ADMIN')")
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthFilter;
 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
+    // Constructor injection
 
+    /**
+     * PasswordEncoder Bean - wird überall in der App verwendet wo Passwörter
+     * gehashed oder verifiziert werden müssen.
+     *
+     * @Bean: Spring erstellt EINE Instanz und verwendet sie überall
+     *        (Singleton Pattern)
+     *
+     * @return PasswordEncoder Interface (nicht BCryptPasswordEncoder!)
+     *         Warum? Flexibilität - könnte später zu Argon2 wechseln
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Work Factor: 10-12 ist Standard, 14+ für hochsensible Daten
+        // BCrypt mit Stärke 12
+        // Stärke = 2^12 = 4096 Iterationen
+        // Höher = sicherer aber langsamer (10-12 ist Standard 2024)
         return new BCryptPasswordEncoder(12);
     }
 
     /**
-     * Security Filter Chain Configuration.
-     *
-     * TEMPORÄR: Alle Requests erlauben für Entwicklung
-     * SPÄTER: JWT Authentication hinzufügen
+     * Security Filter Chain - definiert welche URLs geschützt sind
+     * temporär: Alles erlauben (später mit JWT absichern)
      */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
         http
-                // 1. CSRF deaktivieren (für REST APIs Standard, macht Tests einfacher)
-                .csrf(AbstractHttpConfigurer::disable)
-
-                // 2. H2-Konsole erlauben (falls du sie nutzt)
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-
-                // 3. Berechtigungen festlegen
+                .csrf(csrf -> csrf.disable())
+                // CORS: Cross-Origin Request erlauben
+                // Fronten auf Port 5173 darf Backend auf 8080 ansprechen
+                .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**").permitAll() // H2 frei
-                        .requestMatchers("/api/questions/**").authenticated() // API geschützt
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**",
+                                "/v3/api-docs/**").permitAll()
+                        // GEÄNDERT: Jetzt brauchen jeder Request einen gültigen Token
+                        // Vorher: permitAll() -> Jeder durfte alles
+                        // Jetzt: authenticated() -> Nur eingeloggte User
+                        .anyRequest().authenticated()
                 )
-                // 4. Login-Methoden
-                .httpBasic(withDefaults())
-                .formLogin(withDefaults());
+                // Stateless Sessions: Spring speichert KEINE Session-Daten
+                // Jeder Request braucht ein Token (Token = Ausweis bei jeder Tür)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // NEU: JWT Filter HINZUFÜGEN
+                // Der Filter wird VOR dem
+                // UsernamePasswordAuthenticationFilter ausgeführt
+                .addFilterBefore(jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
-
-
 }
