@@ -33,19 +33,21 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final JwtService jwtService; //
+    // <-- 1. Das hat gefehlt!
 
-    /**
-     * Constructor Injection - Spring gibt uns automatisch:
-     * - JwtService (zum Token validieren)
-     * - UserDetailsService (zum User laden)
-     */
     public JwtAuthenticationFilter(JwtService jwtService,
                                    UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
+
+    /**
+     * Constructor Injection - Spring gibt uns automatisch:
+     * - JwtService (zum Token validieren)
+     * - UserDetailsService (zum User laden)
+
 
     /**
      * Diese Methode wird bei JEDEM Request ausgeführt!

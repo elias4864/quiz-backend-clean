@@ -40,7 +40,10 @@ public class QuestionServiceTest {
         // Arrange - Mock-Verhalten definieren
         Question q1 = createTestQuestion("Frage 1", "Antwort 1");
         Question q2 = createTestQuestion("Frage 2", "Antwort 2");
-        List<Question> mockQuestions = Arrays.asList(q1, q2);
+        Question q3 = createTestQuestion("Frage 3", "Antwort ");
+
+
+        List<Question> mockQuestions = Arrays.asList(q1, q2,q3);
 
         when(questionRepository.findAll()).thenReturn(mockQuestions);
 
@@ -48,9 +51,12 @@ public class QuestionServiceTest {
         List<QuestionDTO> result = questionService.getAllQuestionsAsDTO();
 
         // Assert - Ergebnis prüfen
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(3);
         assertThat(result.get(0).getQuestion()).isEqualTo("Frage 1");
         assertThat(result.get(1).getQuestion()).isEqualTo("Frage 2");
+        assertThat(result.get(2).getQuestion()).isEqualTo("Frage 3");
+
+
 
         // Verify - Repository-Aufruf prüfen
         verify(questionRepository, times(1)).findAll();
@@ -59,22 +65,29 @@ public class QuestionServiceTest {
 
     @Test
     public void whenGetQuestionById_thenReturnQuestion() {
-        // Arrange
-        Long questionId = 1L;
-        Question mockQuestion = createTestQuestion("Test Frage", "Test Antwort");
-        mockQuestion.setId(questionId);
 
-        when(questionRepository.findById(questionId)).thenReturn(Optional.of(mockQuestion));
+        Long questiondId = 1L;
+        Question mockQuestion2 = createTestQuestion("Test Frage 2 ", "Beispielantwort");
+        mockQuestion2.setId(questiondId);
+        when(questionRepository.findById(questiondId)).thenReturn(Optional.of(mockQuestion2));
+        Question result2= questionService.getQuestionById(questiondId);
+        assertThat(result2).isEqualTo(mockQuestion2);
+        // Arrange
+        Long questionId2 = 2L;
+        Question mockQuestion = createTestQuestion("Test Frage", "Test Antwort");
+        mockQuestion.setId(questionId2);
+
+        when(questionRepository.findById(questionId2)).thenReturn(Optional.of(mockQuestion));
 
         // Act
-        Question result = questionService.getQuestionById(questionId);
+        Question result = questionService.getQuestionById(questionId2);
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(questionId);
+        assertThat(result.getId()).isEqualTo(questionId2);
         assertThat(result.getQuestion()).isEqualTo("Test Frage");
 
-        verify(questionRepository, times(1)).findById(questionId);
+        verify(questionRepository, times(1)).findById(questionId2);
     }
 
     /**
@@ -103,7 +116,7 @@ public class QuestionServiceTest {
         Question newQuestion = createTestQuestion("Neue Frage", "Neue Antwort");
         Question savedQuestion = createTestQuestion("Neue Frage", "Neue Antwort");
         savedQuestion.setId(1L);
-
+        //Beispielantwort
         QuestionDTO newQuestionDTO = new QuestionDTO(
                 null,
                 "Neue Frage",
@@ -144,7 +157,31 @@ public class QuestionServiceTest {
 
         // Assert - Verify dass deleteById aufgerufen wurde
         verify(questionRepository, times(1)).existsById(questionId);
-        verify(questionRepository, times(1)).deleteById(questionId);
+
+
+
+
+
+
+
+
+        Long questionId2 = 2L;
+        Question frage2= createTestQuestion("Was ist die Hauptstadt von Frankreich?", "Paris");
+        frage2.setId(questionId2);
+
+        when(questionRepository.existsById(questionId2)).thenReturn(true);
+        doNothing().when(questionRepository).deleteById(questionId2);
+
+        // Act
+        questionService.deleteQuestion(questionId2);
+
+        // Assert - Verify dass deleteById aufgerufen wurde
+        verify(questionRepository, times(1)).existsById(questionId2);
+
+
+
+
+
     }
 
     /**
@@ -168,6 +205,43 @@ public class QuestionServiceTest {
         assertThat(result.get(0).getCategory()).isEqualTo(category);
 
         verify(questionRepository, times(1)).findByCategory(category);
+
+
+
+        //Arrange
+        String geographycat= "geography";
+        Question geographycategory = createTestQuestion("Was ist die Hauptstadt von Frankreich?", "Paris");
+        geographycategory.setCategory(geographycat);
+        List<Question> mockquetions1 = Arrays.asList(geographycategory);
+        //When
+        when(questionRepository.findByCategory(category)).thenReturn(mockquetions1);
+
+        //Assert
+        assertThat(result).hasSize(37);
+        assertThat(result.get(0).getCategory()).isEqualTo(category);
+
+        //Act
+        verify(questionRepository, times(1)).findByCategory(geographycat);
+
+
+
+
+        //Arrange
+        String sciencecat= "science";
+        Question sciencecategory = createTestQuestion("Science Frage", "Science Antwort");
+        sciencecategory.setCategory(category);
+        List<Question> mockquetions = Arrays.asList(sciencecategory);
+        //When
+        when(questionRepository.findByCategory(category)).thenReturn(mockquetions);
+
+        //Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getCategory()).isEqualTo(category);
+
+        //Act
+        verify(questionRepository, times(1)).findByCategory(sciencecat);
+
+
     }
 
     /**
@@ -186,6 +260,12 @@ public class QuestionServiceTest {
                 "hard"
         );
 
+
+
+
+
+
+
         Question existingQuestion = createTestQuestion("Alte Frage", "Alte Antwort");
         existingQuestion.setId(questionId);
 
@@ -194,8 +274,10 @@ public class QuestionServiceTest {
         updatedQuestion.setCategory("geography");
         updatedQuestion.setDifficulty("hard");
 
+
         when(questionRepository.existsById(questionId)).thenReturn(true);
         when(questionRepository.save(any(Question.class))).thenReturn(updatedQuestion);
+
 
         // Act
         QuestionDTO result = questionService.updateQuestion(questionId, updatedDTO);

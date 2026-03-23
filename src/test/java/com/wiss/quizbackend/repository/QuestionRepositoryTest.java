@@ -152,8 +152,21 @@ public class QuestionRepositoryTest {
                 null
         );
 
+
+
+
+        Question q3 = new Question(
+                "Test 3 ",
+                "Answer 3",
+                Arrays.asList("Wrong 1", "Wrong 2", "Wrong 3"),
+                "m",
+                "easy",
+                null
+        );
+
         entityManager.persistAndFlush(q1);
         entityManager.persistAndFlush(q2);
+        entityManager.persistAndFlush(q3);
 
         // Act - Alle löschen
         questionRepository.deleteAll();

@@ -1,5 +1,7 @@
 package com.wiss.quizbackend.controller;
 
+import com.wiss.quizbackend.dto.LoginRequestDTO;
+import com.wiss.quizbackend.dto.LoginResponseDTO;
 import com.wiss.quizbackend.dto.RegisterRequestDTO;
 import com.wiss.quizbackend.dto.RegisterResponseDTO;
 import com.wiss.quizbackend.entity.AppUser;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,6 +29,66 @@ public class AuthController {
                           JwtService jwtService) {
         this.appUserService = appUserService;
         this.jwtService = jwtService;
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO requestDTO) {
+        try {
+            // 1. User finden (Username oder Email)
+            Optional<AppUser> userOpt;
+
+            // Prüfen, ob E-Mail oder Username
+            if(requestDTO.getUsernameOrEmail().contains("@")) {
+                // Hat @ → ist eine E-Mail
+                userOpt = appUserService.findByEmail(requestDTO.getUsernameOrEmail());
+            } else {
+                // Hat KEIN @ → ist ein Username
+                userOpt = appUserService.findByUsername(requestDTO.getUsernameOrEmail());
+            }
+
+            // User existiert nicht
+            if(userOpt.isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Ungültige Anmeldedaten"));
+            }
+
+            AppUser user = userOpt.get();
+
+            // 2. Passwort prüfen mit authenticateUser
+            Optional<AppUser> authenticatedUser = appUserService
+                    .authenticateUser(user.getUsername(), requestDTO.getPassword());
+
+            if(authenticatedUser.isEmpty()) {
+                // Passwort falsch
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Ungültige Anmeldedaten"));
+            }
+
+            // 3. JWT Token generieren
+            String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
+
+            // 4. Response DTO erstellen
+            LoginResponseDTO responseDTO = new LoginResponseDTO(
+                    token,
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRole().name(),
+                    86400000L // 24 Stunden in ms
+            );
+
+            // 5. Success Response
+            return ResponseEntity.ok(responseDTO);
+
+        } catch (Exception e) {
+            // Unerwarteter Fehler
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Ein Fehler ist aufgetreten: " + e.getMessage()));
+        }
     }
 
 
@@ -94,7 +157,7 @@ public class AuthController {
 
 
 
-    
+
     /**
      * GET /api/auth/check-email/{email}
      *
