@@ -11,12 +11,15 @@ public class WebConfig implements WebMvcConfigurer {
     //Spring Security mit den Schichten
 
     @Override
-    public void addCorsMappings(CorsRegistry registry){
-        registry.addMapping("/api/questions/**") // <- Alle /api/questions/* Endpoints
-                .allowedOrigins("http://localhost:5173") // <- Vite dev Server
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:5174") // ✅ Vite Dev Server
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false)
-                .maxAge(3600); // browser cached CORS-Info für 1h (3'600s)
+                .allowCredentials(true);
     }
+
+
+
+
 }

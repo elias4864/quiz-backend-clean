@@ -49,7 +49,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/questions")
-@CrossOrigin(origins = "http://localhost:5173") //
+@CrossOrigin(origins = "http://localhost:5174") //
 
 
 @Tag(name="Questions", description = "CRUD Operations für Quiz-Fragen")
@@ -270,20 +270,6 @@ public class QuestionController {
      * @return Die erstellte Frage mit generierter ID*
      * @throws InvalidQuestionDataException bei ungültigen Daten
      */
-    @PostMapping
-    @Operation(
-            summary = "Neue Frage erstellen",
-            description = "Erstellt eine neue Quiz-Frage"
-    )
-    @PreAuthorize("hasRole('ADMIN')")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ApiResponse(responseCode = "201", description = "Frage erfolgreich erstellt")
-    @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
-    public QuestionDTO createQuestion(
-            @Parameter(description = "Frage-Daten", required = true)
-            @Valid @RequestBody QuestionDTO questionDTO){ // ← @Valid hinzufügen!
-        return service.createQuestion(questionDTO);
-    }
 
     /**
      * Erstellt eine neue Quiz-Frage.

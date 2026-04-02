@@ -1,5 +1,6 @@
 package com.wiss.quizbackend.security;
 
+
 import com.wiss.quizbackend.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,32 +12,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * JWT Authentication Filter - Das "Ausweis-Lesegerät" unserer Applikation
- * <p>
- * Dieser Filter wird bei JEDEM Request ausgeführt und macht folgendes:
- * 1. Schaut, ob ein JWT Token im Authorization Header ist
- * 2. Validiert den Token (Signatur, Ablaufdatum)
- * 3. Lädt den User aus der Datenbank
- * 4. Setzt den User in den SecurityContext (Spring weiss jetzt: User ist eingeloggt!)
- * </p>
- * Analogie: Das Ausweis-Lesegerät am Aufzug
- * - Liest den Ausweis (Token)
- * - Prüft, ob er echt und gültig ist
- * - Identifiziert die Person
- * - Öffnet die Tür (oder nicht)
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
-    private final JwtService jwtService; //
-    // <-- 1. Das hat gefehlt!
 
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+
+
+    /**
+     * Constructor Injection - Spring gibt uns automatisch:
+     * - JwtService (zum Token validieren)
+     * - UserDetailsService (zum User laden)
+     */
     public JwtAuthenticationFilter(JwtService jwtService,
                                    UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -44,16 +40,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Constructor Injection - Spring gibt uns automatisch:
-     * - JwtService (zum Token validieren)
-     * - UserDetailsService (zum User laden)
-
-
-    /**
      * Diese Methode wird bei JEDEM Request ausgeführt!
      *
-     * @param request  Der eingehende HTTP Request
-     * @param response Die HTTP Response
+     * @param request     Der eingehende HTTP Request
+     * @param response    Die HTTP Response
      * @param filterChain Die Chain von weiteren Filtern
      */
     @Override
@@ -126,7 +116,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // SCHRITT 11: Weiter zum nächsten Filter in der Chain
-        // der Request geht jetzt weiter zu SecurityConfig, dann zum Controller
+        // Der Request geht jetzt weiter zu SecurityConfig, dann zum Controller
         filterChain.doFilter(request, response);
     }
+
 }
+
