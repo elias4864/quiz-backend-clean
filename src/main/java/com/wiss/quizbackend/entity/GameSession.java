@@ -1,6 +1,7 @@
 package com.wiss.quizbackend.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 
 import java.time.LocalDateTime;
 
@@ -34,14 +35,16 @@ public class GameSession {
     public GameSession() {}
 
     // Constructor für neue Games
-    public GameSession(Long userId, String category,
-                       Integer correct, Integer total, Integer score) {
+
+    public GameSession(Long id, Long userId, String category, Integer correctAnswers, Integer totalQuestions, Integer totalScore) {
+        this.id = id;
         this.userId = userId;
         this.category = category;
-        this.correctAnswers = correct;
-        this.totalQuestions = total;
-        this.totalScore = score;
+        this.correctAnswers = correctAnswers;
+        this.totalQuestions = totalQuestions;
+        this.totalScore = totalScore;
         this.playedAt = LocalDateTime.now();
+
     }
 
     public Long getId() {
